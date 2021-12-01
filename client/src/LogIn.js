@@ -1,10 +1,10 @@
 import React, { Component } from 'react'
 import { Link } from 'react-router-dom';
 
-class LogIn extends Component{
+class LogIn extends Component{ //creating the LogIn component
     constructor(props){
         super(props);
-    
+        //setting up initial state
         this.state = {
             name: '',
             selectedRoom: null,
@@ -19,14 +19,14 @@ class LogIn extends Component{
     }
 
 
-    logIn(){
+    logIn(){ //sets name to the state name and mark client as logged in
         this.state.setName({name: this.state.name})
         this.setState({
             loggedIn: true
         })
     }
 
-    handleChange(event) {
+    handleChange(event) { //change name state to event value
         this.setState({
             name: event.target.value,
         })  
@@ -38,13 +38,14 @@ class LogIn extends Component{
         })  
     }
     
-    render(){ 
-        let logIn = <button className = 'entry' onClick = {() => this.logIn()}>LogIn</button>
+    render(){ //creating the render
+        let logIn = <button className = 'entry' onClick = {() => this.logIn()}>LogIn</button> //creating log in button
  
-        if(this.state.loggedIn){
+        if(this.state.loggedIn){ //if user is logged in then the button will link to the App page
             logIn = <Link to ='/App'> LOGIN</Link>
         }
 
+        //returns the html for the login page
         return(
             <div class = 'container'>
                 <h1> Log In Type </h1>

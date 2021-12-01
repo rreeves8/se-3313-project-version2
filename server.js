@@ -5,19 +5,19 @@ const socketIo = require("socket.io");
 const path = require('path');
 const { RSA_PKCS1_PADDING } = require("constants");
 
-const port = process.env.PORT || 3001;
+const port = process.env.PORT || 3001; //setting up the port to use
 
-const app = express();
+const app = express(); //creating the express server
 
-app.use(express.static(path.join(__dirname,'./client/build')))
+app.use(express.static(path.join(__dirname,'./client/build'))) //setting the static path
 
 
 const server = http.createServer(app);
 
-const io = socketIo(server);
+const io = socketIo(server); 
 
 
-let SocketStack = []
+let SocketStack = [] //intializing variables to use
 
 let chatRooms = []
 
@@ -26,48 +26,48 @@ let roomNumber = 0;
 
 
 
-io.on('connection', socket => {  
+io.on('connection', socket => {  //intializing the server
     console.log("New User")
-    SocketStack.push(socket)
+    SocketStack.push(socket) //push new socket into the stack
     let currRoom;
 
-    socket.on('LogIn', (callback) =>  {
-        userCount++;
+    socket.on('LogIn', (callback) =>  { //setting up the socket for when someone log into the app
+        userCount++; //increasing the amount of users active
         console.log(userCount)
-        if(chatRooms.length === 0){
+        if(chatRooms.length === 0){ //when no rooms are open an array is added to the chatRooms array
             chatRooms.push(new Array())
         }
 
-        if(userCount % 3 === 0){
+        if(userCount % 3 === 0){ //when 3 people enter the room it is considered full and will instead create a new room to push to the chatRooms array
             roomNumber++;
             console.log("New Room Created")
             chatRooms.push(new Array())
         }
 
-        currRoom = roomNumber;
+        currRoom = roomNumber; 
 
-        socket.join(currRoom.toString())
+        socket.join(currRoom.toString()) //join the current room to the socket
 
-        callback({
+        callback({ //called once the other side acknowledges LogIn event
             roomNum: currRoom,
             messages: chatRooms[currRoom]
         })
     });
 
-    socket.on('SendMessage', (message) => {
+    socket.on('SendMessage', (message) => { //setting up socket for when someone sends a message in the app
         console.log("sending new message")
-        chatRooms[currRoom].push(message)
+        chatRooms[currRoom].push(message) //client message is pushed to the chatroom
         
-        io.sockets.to(currRoom.toString()).emit('NewMessage', message)
+        io.sockets.to(currRoom.toString()).emit('NewMessage', message) //sends message to the current specific room
     });
 
-    socket.on('disconnect', () => {
+    socket.on('disconnect', () => { //setting up socket for when someone disconnects
         console.log("disconnecting a user")
-        if(!userCount < 1){
+        if(!userCount < 1){ //decrease user count when someone begins disconnecting
             userCount--;
         }
         console.log(userCount)
-        socket.disconnect(true);
+        socket.disconnect(true); //disconnect the user socket
     })
 })
 
