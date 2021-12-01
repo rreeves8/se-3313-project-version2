@@ -6,25 +6,26 @@ import App from './App';
 import io from "socket.io-client";
 const ENDPOINT = "127.0.0.1:3001";
 
-class Home extends React.Component {
+class Home extends React.Component { //creating Home component
     constructor(props){
         super(props)
 
-        let socket = io(ENDPOINT)
+        let socket = io(ENDPOINT) //setup socket to ENDPOINT
 
-        this.state = {
+        this.state = { //define the initial state
             data: null,
             socket: socket
         }
     }
     
+    //setName is defined as a function that sets data state to the reveived data
     setName = (data) => {
         this.setState({
             data: data
         })
     }
     
-    render(){
+    render(){ //return the Components used in building the home page
         return (
             <Router>
                 <Switch> 

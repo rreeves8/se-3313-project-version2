@@ -4,19 +4,20 @@ import io from "socket.io-client";
 const ENDPOINT = "127.0.0.1:3001";
 
 
-function Message(props){
+function Message(props){ //function for the client message
     let messagesHTML = []; 
     console.log(props.messages)
     for(let j = 0; j < props.messages.length; j++){ 
         let containerCss;
 
-        if(props.messages[j].name === props.name){
+        if(props.messages[j].name === props.name){ //what side the message is on
             containerCss = "containerLeft"
         }
         else{
             containerCss = "containerRight"
         }
 
+        //defining the HTML for the message
         messagesHTML[j] = <div className = {containerCss}>
                             <div className = "message">
                                 <p>{props.messages[j].message}</p>
@@ -25,6 +26,7 @@ function Message(props){
                     </div>
     }
     
+    //return the message
     return (<div className = "board"> 
                {messagesHTML}
            </div> 
@@ -36,7 +38,7 @@ class App extends React.Component {
     constructor(props){
         super(props)
         
-        this.state = {
+        this.state = { //defines the current state
             socket: props.socket,
             messages: new Array(),
             isLoggedIn: false,
@@ -51,37 +53,37 @@ class App extends React.Component {
         this.InputOnChange = this.InputOnChange.bind(this)
     }
 
-    InputOnChange(event){
+    InputOnChange(event){ //set message to the event value
         this.setState({
             message: event.target.value,
         })     
     }
 
-    SendMessage(){
+    SendMessage(){ //send the message with the required values in the state
         console.log("sending message")
         this.state.socket.emit('SendMessage', ({message: this.state.message, name: this.state.name}))
         
-        this.setState({
+        this.setState({ //empty the message after sending
             message: ''
         })
     }
 
     componentDidMount(){
-        this.state.socket.on('NewMessage', (data) => {
-            let prevState = this.state.messages
+        this.state.socket.on('NewMessage', (data) => { //set up a new message 
+            let prevState = this.state.messages //intialize temp var for the messages
             
-            prevState.push(data)
+            prevState.push(data) //push data to new var
             
-            this.setState({
+            this.setState({ //set messages to new var
                 messages: prevState
             })
         })
     }
 
-    render(){
+    render(){ //render class for the app
         if(!this.state.isLoggedIn){
             let messagesOnStart = []
-            this.state.socket.emit('LogIn', (response) => {
+            this.state.socket.emit('LogIn', (response) => { //when not logged in will send LogIn to get user set into a chat room
                 console.log(response.messages)
                 messagesOnStart = response.messages
                 this.setState({
@@ -93,8 +95,9 @@ class App extends React.Component {
         }
 
         console.log(this.state.messages)
-        let messages = <Message name = {this.state.name} messages = {this.state.messages}></Message>
+        let messages = <Message name = {this.state.name} messages = {this.state.messages}></Message> //create message component
 
+        //return the messages as well as the ways to send a message
         return (
             <div className="App">
                 <header className="App-header"> Room Number: {this.state.roomNum}
