@@ -38,7 +38,7 @@ io.on('connection', socket => {  //intializing the server
             chatRooms.push(new Array())
         }
 
-        if(userCount % 3 === 0){ //when 3 people enter the room it is considered full and will instead create a new room to push to the chatRooms array
+        if(userCount % 3 === 0){ //when 2 people enter the room it is considered full and will instead create a new room to push to the chatRooms array
             roomNumber++;
             console.log("New Room Created")
             chatRooms.push(new Array())
@@ -48,7 +48,7 @@ io.on('connection', socket => {  //intializing the server
 
         socket.join(currRoom.toString()) //join the current room to the socket
 
-        callback({ //called once the other side acknowledges LogIn event
+        callback({ //return value for login function, initializes the messages for a client so they can seee history
             roomNum: currRoom,
             messages: chatRooms[currRoom]
         })
@@ -62,7 +62,7 @@ io.on('connection', socket => {  //intializing the server
     });
 
     socket.on('disconnect', () => { //setting up socket for when someone disconnects
-        console.log("disconnecting a user")
+        console.log("disconnecting user " + socket.id)
         if(!userCount < 1){ //decrease user count when someone begins disconnecting
             userCount--;
         }
@@ -71,37 +71,31 @@ io.on('connection', socket => {  //intializing the server
     })
 })
 
+const keypress = async () => {
+    process.stdin.setRawMode(true)
+    return new Promise(resolve => process.stdin.once('data', () => {
+        process.stdin.setRawMode(false)
+        resolve()
+    }))
+};
+  
+(async () => {
+    //start server and wait for input, 
+    server.listen(port, () => {
+        console.log(`Listening on port ${port}, press any key to stop`)  
+    });
 
-function getInput(data) {
-    var readLine1 = readline.createInterface({input: process.stdin, output: process.stdout});
+    await keypress()
     
-    var promise = new Promise(input => {
-            readLine1.question(data, response => {
-                readLine1.close();
-                input(response);
-            })
-        }
-    )
-
-    return promise;
-  }
-
-
-
-const serverProcess = server.listen(port, async () => {
-    console.log(`Listening on port ${port}`)
-    /*
-    const ans = await getInput("Press any key to close the server");
-
     console.log("closing server and killing sockets")
 
+    //on close disconnect all sockets from server
     for(let i = 0; i < SocketStack.length; i ++){
         SocketStack[i].disconnect(true);
     }
 
-    process.exit();
-    */
-});
-
+    console.log('bye')
+  
+})().then(process.exit)
 
 
