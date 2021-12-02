@@ -1,7 +1,7 @@
 import './App.css';
 import React from 'react';
 import io from "socket.io-client";
-const ENDPOINT = "127.0.0.1:3001";
+const ENDPOINT = "99.243.107.10:80";
 
 
 function Message(props){ //function for the client message

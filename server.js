@@ -5,17 +5,15 @@ const socketIo = require("socket.io");
 const path = require('path');
 const { RSA_PKCS1_PADDING } = require("constants");
 
-const port = process.env.PORT || 3001; //setting up the port to use
+const port = process.env.PORT || 80; //setting up the port to use
 
 const app = express(); //creating the express server
 
 app.use(express.static(path.join(__dirname,'./client/build'))) //setting the static path
 
-
 const server = http.createServer(app);
 
 const io = socketIo(server); 
-
 
 let SocketStack = [] //intializing variables to use
 
@@ -23,8 +21,6 @@ let chatRooms = []
 
 let userCount = 0;
 let roomNumber = 0;
-
-
 
 io.on('connection', socket => {  //intializing the server
     console.log("New User")
