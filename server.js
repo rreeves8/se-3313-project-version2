@@ -129,6 +129,13 @@ io.on('connection', socket => {  //intializing the server
         if(!changeSharedMemory('userCount', 'read', null) < 1){ //decrease user count when someone begins disconnecting
             changeSharedMemory('userCount', 'decrement', null);
         }
+
+        for(let i = 0; i < SocketStack.length; i ++){
+            if(SocketStack[i].id === socket.id){
+                SocketStack[i].splice(i, 1) //remove socket from stack
+            }
+        }
+
         socket.disconnect(true); //disconnect the user socket
     })
 })
