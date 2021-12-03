@@ -1,8 +1,5 @@
 import './App.css';
 import React from 'react';
-import io from "socket.io-client";
-const ENDPOINT = "99.243.107.10:80";
-
 
 function Message(props){ //function for the client message
     let messagesHTML = []; 

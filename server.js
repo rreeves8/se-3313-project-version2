@@ -3,9 +3,10 @@ const express = require("express");
 const http = require("http");
 const socketIo = require("socket.io");
 const path = require('path');
-const { RSA_PKCS1_PADDING } = require("constants");
+const { RSA_PKCS1_PADDING, SSL_OP_EPHEMERAL_RSA } = require("constants");
+const { access } = require("fs");
 
-const port = process.env.PORT || 80; //setting up the port to use
+const port = process.env.PORT || 3001; //setting up the port to use
 
 const app = express(); //creating the express server
 
@@ -17,10 +18,76 @@ const io = socketIo(server);
 
 let SocketStack = [] //intializing variables to use
 
+
 let chatRooms = []
 
 let userCount = 0;
 let roomNumber = 0;
+
+
+let isBeingChanged = 0;
+
+function sleep(ms) { //wait for time
+    console.log("waiting")
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function changeSharedMemory(type, operation, data){
+    if(isBeingChanged === 1){
+        let data;
+        sleep(200).then(
+            data = changeSharedMemory(type, operation, data)
+        )
+        return data;
+    }
+    else{
+        isBeingChanged = 1;
+        if(type === 'userCount'){
+            if(operation === 'increment'){
+                userCount++;
+            }
+            if(operation === 'decrement'){
+                userCount--;
+            }
+            if(operation === 'read'){
+                isBeingChanged = 0;
+                return userCount;
+            }
+        }
+        if(type === 'roomNumber'){
+            if(operation === 'increment'){
+                roomNumber++;
+            }
+            if(operation === 'decrement'){
+                roomNumber--;
+            }
+            if(operation === 'read'){
+                isBeingChanged = 0;
+                return roomNumber;
+            }
+        }
+        if(type === 'chatRooms'){
+            if(operation === 'length'){
+                isBeingChanged = 0;
+                return chatRooms.length
+            }
+            if(operation === 'push'){
+                chatRooms.push(data)
+            }
+            if(operation === 'NewMessage'){
+                chatRooms[data.index].push(data.message)
+            }
+            if(operation === 'read'){
+                isBeingChanged = 0;
+                return chatRooms[data]
+            }
+
+        }
+        isBeingChanged = 0;
+    }
+}
+
+
 
 io.on('connection', socket => {  //intializing the server
     console.log("New User")
@@ -28,41 +95,40 @@ io.on('connection', socket => {  //intializing the server
     let currRoom;
 
     socket.on('LogIn', (callback) =>  { //setting up the socket for when someone log into the app
-        userCount++; //increasing the amount of users active
-        console.log(userCount)
-        if(chatRooms.length === 0){ //when no rooms are open an array is added to the chatRooms array
-            chatRooms.push(new Array())
+        console.log("logged in")
+        changeSharedMemory('userCount', 'increment', null)
+        if(changeSharedMemory('chatRooms', 'length', null) === 0){ //when no rooms are open an array is added to the chatRooms array
+            changeSharedMemory('chatRooms', 'push',new Array())
         }
 
-        if(userCount % 3 === 0){ //when 2 people enter the room it is considered full and will instead create a new room to push to the chatRooms array
-            roomNumber++;
-            console.log("New Room Created")
-            chatRooms.push(new Array())
+        if(changeSharedMemory('userCount', 'read', null) % 3 === 0){ //when 2 people enter the room it is considered full and will instead create a new room to push to the chatRooms array
+            changeSharedMemory('roomNumber', 'increment', null);
+            changeSharedMemory('chatRooms', 'push',new Array())
         }
 
-        currRoom = roomNumber; 
+        currRoom = changeSharedMemory('roomNumber', 'read', null); 
 
         socket.join(currRoom.toString()) //join the current room to the socket
 
+        console.log(changeSharedMemory('userCount', 'read', null))
+
         callback({ //return value for login function, initializes the messages for a client so they can seee history
             roomNum: currRoom,
-            messages: chatRooms[currRoom]
+            messages: changeSharedMemory('chatRooms', 'read', [currRoom])
         })
     });
 
     socket.on('SendMessage', (message) => { //setting up socket for when someone sends a message in the app
-        console.log("sending new message")
-        chatRooms[currRoom].push(message) //client message is pushed to the chatroom
+        changeSharedMemory('chatRooms', 'NewMessage', {index: currRoom, message: message})
         
         io.sockets.to(currRoom.toString()).emit('NewMessage', message) //sends message to the current specific room
     });
 
     socket.on('disconnect', () => { //setting up socket for when someone disconnects
         console.log("disconnecting user " + socket.id)
-        if(!userCount < 1){ //decrease user count when someone begins disconnecting
-            userCount--;
+        if(!changeSharedMemory('userCount', 'read', null) < 1){ //decrease user count when someone begins disconnecting
+            changeSharedMemory('userCount', 'decrement', null);
         }
-        console.log(userCount)
         socket.disconnect(true); //disconnect the user socket
     })
 })
