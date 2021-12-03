@@ -4,7 +4,7 @@ import React from 'react';
 import LogIn from './LogIn';
 import App from './App';
 import io from "socket.io-client";
-const ENDPOINT = "127.0.0.1:3001";
+const ENDPOINT = "99.243.107.19:80";
 
 class Home extends React.Component { //creating Home component
     constructor(props){

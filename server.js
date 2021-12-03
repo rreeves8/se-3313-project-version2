@@ -6,7 +6,7 @@ const path = require('path');
 const { RSA_PKCS1_PADDING, SSL_OP_EPHEMERAL_RSA } = require("constants");
 const { access } = require("fs");
 
-const port = process.env.PORT || 3001; //setting up the port to use
+const port = process.env.PORT || 80; //setting up the port to use
 
 const app = express(); //creating the express server
 
